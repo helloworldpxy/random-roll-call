@@ -1,3 +1,7 @@
+//written by HelloWorld05
+//这个程序是一个简单的学生随机名字选择器。
+// version 0.8beta
+
 #include <iostream>
 #include <vector>
 #include <cstdlib>
