@@ -1,12 +1,6 @@
-//更新内容如下：
-// 1、使用 find_if 代替 for 循环：在 deleteStudent 和 modifyStudent 函数中，使用 find_if 查找学生，减少不必要的遍历。
-// 2、减少 seeded 变量的检查次数：将 seeded 变量的初始化移到 randomPick 函数外部，避免每次调用时都进行检查。
-// 3、增加输入错误处理：在 cin 输入时增加错误处理，防止用户输入非数字字符导致程序崩溃。
-
-
-//written by HelloWorld05 amd RedstoneLu.
+//written by HelloWorld05
 //这个程序是一个简单的学生随机名字选择器。
-// version 0.9beta
+// version 1.0
 
 #include <iostream>
 #include <vector>
@@ -27,12 +21,14 @@ struct Student {
 // 全局变量，存储所有学生的向量
 vector<Student> students;
 
+// 查找学生函数，返回指向学生的迭代器，如果不存在则返回end()
+auto findStudent(int id) {
+    return find_if(students.begin(), students.end(), [id](const Student& s) { return s.id == id; });
+}
+
 // 添加学生函数，如果学生ID已存在则抛出异常
 void addStudent(int id, const string& name) {
-    auto it = find_if(students.begin(), students.end(), [id](const Student& s) {
-        return s.id == id;
-    });
-    if (it != students.end()) {
+    if (findStudent(id) != students.end()) {
         throw invalid_argument("Student with this ID already exists.");
     }
     students.push_back({id, name});
@@ -40,20 +36,16 @@ void addStudent(int id, const string& name) {
 
 // 删除学生函数，如果学生ID不存在则抛出异常
 void deleteStudent(int id) {
-    auto it = remove_if(students.begin(), students.end(), [id](const Student& s) {
-        return s.id == id;
-    });
+    auto it = findStudent(id);
     if (it == students.end()) {
         throw invalid_argument("Student with this ID does not exist.");
     }
-    students.erase(it, students.end());
+    students.erase(it);
 }
 
 // 修改学生信息函数，如果学生ID不存在则抛出异常
 void modifyStudent(int id, const string& newName) {
-    auto it = find_if(students.begin(), students.end(), [id](const Student& s) {
-        return s.id == id;
-    });
+    auto it = findStudent(id);
     if (it == students.end()) {
         throw invalid_argument("Student with this ID does not exist.");
     }
@@ -66,17 +58,16 @@ void randomPick() {
         cout << "No students to pick from." << endl;
         return;
     }
-    static bool seeded = false;
-    if (!seeded) {
-        srand(time(0));
-        seeded = true;
-    }
     int index = rand() % students.size();
     cout << "Randomly picked student: " << students[index].name << " (ID: " << students[index].id << ")" << endl;
 }
 
 // 显示所有学生信息
 void displayStudents() {
+    if (students.empty()) {
+        cout << "No students available." << endl;
+        return;
+    }
     for (const auto& student : students) {
         cout << "ID: " << student.id << ", Name: " << student.name << endl;
     }
@@ -86,6 +77,8 @@ void displayStudents() {
 int main() {
     int choice, id;
     string name;
+
+    srand(time(0)); // 只在开始时进行一次随机数种子初始化
 
     while (true) {
         cout << "1. Add Student\n2. Delete Student\n3. Modify Student\n4. Random Pick\n5. Display Students\n6. Exit\n";
